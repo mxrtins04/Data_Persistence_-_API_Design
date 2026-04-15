@@ -15,9 +15,17 @@ import com.mxr.integration.exceptions.NationalizeExceptions.MissingCountryDataEx
 import com.mxr.integration.exceptions.InvalidNameException;
 import com.mxr.integration.model.CountryData;
 import com.mxr.integration.model.Person;
+import com.mxr.integration.repo.PersonRepoImpl;
 
 @Service
 public class IntegrationService {
+    
+    private final PersonRepoImpl repo;
+
+    IntegrationService(PersonRepoImpl personRepoImpl) {
+        this.repo = personRepoImpl;
+    }
+    
     RestTemplate restTemplate = new RestTemplate();
 
     public GenderizeResponse getGenderizeResponse(String name) {
@@ -76,6 +84,9 @@ public class IntegrationService {
                 .build();
     }
 
+    public Person savePerson(Person person) {
+        return repo.save(person);
+    }
     
     private CountryData getCountryWithHighestProbability(List<CountryData> countries) {
         return countries.stream()

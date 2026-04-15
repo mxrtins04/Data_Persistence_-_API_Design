@@ -7,6 +7,6 @@ import java.util.UUID;
 import com.mxr.integration.model.Person;
 
 @Repository
-public interface NamesRepoImpl extends JpaRepository<Person, UUID> {
+public interface PersonRepoImpl extends JpaRepository<Person, UUID> {
     
 }
