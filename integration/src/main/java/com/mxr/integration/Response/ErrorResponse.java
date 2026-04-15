@@ -1,4 +1,4 @@
-package com.mxr.integration.exceptions;
+package com.mxr.integration.Response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

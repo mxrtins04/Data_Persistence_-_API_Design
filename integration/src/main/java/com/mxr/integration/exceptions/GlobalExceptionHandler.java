@@ -7,6 +7,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.RestClientException;
 
+import com.mxr.integration.Response.ErrorResponse;
+import com.mxr.integration.exceptions.AgifyExceptions.NullAgeException;
+import com.mxr.integration.exceptions.NationalizeExceptions.MissingCountryDataException;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     
@@ -55,6 +59,24 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(response, HttpStatus.BAD_GATEWAY);
     }
+
+    @ExceptionHandler(NullAgeException.class)
+    public ResponseEntity<ErrorResponse> handleNullAgeException(NullAgeException ex){
+        ErrorResponse response = new ErrorResponse(
+            "error",
+            ex.getMessage()
+        );
+        return new ResponseEntity<>(response, HttpStatus.BAD_GATEWAY);
+    }
+
+    @ExceptionHandler(MissingCountryDataException.class)
+    public ResponseEntity<ErrorResponse> handleMissingCountryDataException(MissingCountryDataException ex){
+        ErrorResponse response = new ErrorResponse(
+            "error",
+            ex.getMessage()
+        );
+        return new ResponseEntity<>(response, HttpStatus.BAD_GATEWAY);
+    }   
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception ex){
