@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import com.mxr.integration.Response.AgifyResponse;
@@ -18,6 +19,7 @@ import com.mxr.integration.exceptions.InvalidNameException;
 import com.mxr.integration.model.CountryData;
 import com.mxr.integration.model.Person;
 import com.mxr.integration.repo.PersonRepoImpl;
+import com.mxr.integration.spec.PersonSpecification;
 
 @Service
 public class IntegrationService {
@@ -30,7 +32,26 @@ public class IntegrationService {
     
     RestTemplate restTemplate = new RestTemplate();
 
-    public GenderizeResponse getGenderizeResponse(String name) {
+    public List<Person> savePerson(String name) {
+        GenderizeResponse genderizeResponse = getGenderizeResponse(name);
+        AgifyResponse agifyResponse = getAgifyResponse(name);
+        NationalizeResponse nationalizeResponse = getNationalizeResponse(name);
+        Person person = mapToPerson(genderizeResponse, agifyResponse, nationalizeResponse);
+        
+        Optional<Person> existingPerson = repo.findNameIgnoreCase(person.getName());
+        if (existingPerson.isPresent()) {
+            throw new PersonAlreadyExistsException();
+        }
+
+        Specification<Person> spec = Specification
+                .where(PersonSpecification.hasGender(person.getGender()))
+                .and(PersonSpecification.hasCountryId(person.getCountryId()))
+                .and(PersonSpecification.hasAgeGroup(person.getAgeGroup()));
+
+        return repo.findAll(spec);
+    }
+
+    private GenderizeResponse getGenderizeResponse(String name) {
         validateName(name);
 
         String genderizeUrl = "https://api.genderize.io/?name=" + name;
@@ -47,7 +68,7 @@ public class IntegrationService {
         return genderizeResponse;
     }
 
-    public AgifyResponse getAgifyResponse(String name) {
+    private AgifyResponse getAgifyResponse(String name) {
         String agifyUrl = "https://api.agify.io?name=" + name;
         AgifyResponse agifyResponse = restTemplate.getForObject(agifyUrl, AgifyResponse.class);
 
@@ -58,7 +79,7 @@ public class IntegrationService {
         return agifyResponse;
     }
 
-    public NationalizeResponse getNationalizeResponse(String name) {
+    private NationalizeResponse getNationalizeResponse(String name) {
         String nationalizeUrl = "https://api.nationalize.io?name=" + name;
         NationalizeResponse nationalizeResponse = restTemplate.getForObject(nationalizeUrl, NationalizeResponse.class);
         List<CountryData> countries = nationalizeResponse.getCountries();
@@ -68,7 +89,7 @@ public class IntegrationService {
         return nationalizeResponse;
     }
 
-    public Person mapToPerson(GenderizeResponse genderizeResponse, AgifyResponse agifyResponse,
+    private Person mapToPerson(GenderizeResponse genderizeResponse, AgifyResponse agifyResponse,
             NationalizeResponse nationalizeResponse) {
         List<CountryData> countries = nationalizeResponse.getCountries();
         UUID id = UUID.randomUUID();
@@ -85,13 +106,7 @@ public class IntegrationService {
                 .build();
     }
 
-    public Person savePerson(Person person) {
-        Optional<Person> existingPerson = repo.findNameIgnoreCase(person.getName());
-        if (existingPerson.isPresent()) {
-            throw new PersonAlreadyExistsException();
-        }
-        return repo.save(person);
-    }
+    
     
     private CountryData getCountryWithHighestProbability(List<CountryData> countries) {
         return countries.stream()
