@@ -36,7 +36,7 @@ public class IntegrationService {
     public ProcessedResponse savePerson(String name) {
         validateName(name);
         if (repo.existsByName(name)) {
-            Person person = repo.findNameIgnoreCase(name).get();
+            Person person = repo.findByNameIgnoreCase(name).get();
             return new PersonExistsResponse("success", person, "Profile already exists");
         }
         GenderizeResponse genderizeResponse = getGenderizeResponse(name);

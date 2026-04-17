@@ -7,6 +7,8 @@ import jakarta.persistence.PrePersist;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 import java.time.Instant;
 
@@ -17,6 +19,8 @@ import org.hibernate.annotations.CreationTimestamp;
 @Entity
 @Builder
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 
 public class Person {
     @Id
