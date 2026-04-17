@@ -3,8 +3,10 @@ package com.mxr.integration.controller;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mxr.integration.Response.MultipleProcessedResponse;
+import com.mxr.integration.Response.PersonExistsResponse;
 import com.mxr.integration.Response.ProcessedResponse;
 import com.mxr.integration.model.Person;
+import com.mxr.integration.request.NewEntityRequest;
 import com.mxr.integration.service.IntegrationService;
 
 import java.util.List;
@@ -32,14 +34,14 @@ public class classifyController {
         return new ResponseEntity<>("OK", HttpStatus.OK);
     }
 
-    @PostMapping("/api/profiles/{name}")
-    public ProcessedResponse getPersonByName(@RequestBody String name) {
-        Person person = integrationService.savePerson(name);
-
-        return ProcessedResponse.builder()
-                .status("success")
-                .data(person)
-                .build();
+    @PostMapping("/api/profiles")
+    public ResponseEntity<ProcessedResponse> savePerson(@RequestBody NewEntityRequest request) {
+        String name = request.getName();
+        ProcessedResponse response = integrationService.savePerson(name);
+        if(response instanceof PersonExistsResponse) {
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @GetMapping("/api/profiles/{id}")
@@ -61,7 +63,7 @@ public class classifyController {
     @DeleteMapping("/api/profiles/{id}")
     public ResponseEntity<String> deleteUserById(@PathVariable UUID id) {
         integrationService.deletePersonById(id);
-        return new ResponseEntity<>("OK", HttpStatus.NO_CONTENT);
+        return ResponseEntity.noContent().build();
     }
 
 
@@ -72,10 +74,13 @@ public class classifyController {
                 .build();
     }
     
+
+    
     private MultipleProcessedResponse mapSpecToMultipleProcessedResponse(List<Person> list) {
 
         return MultipleProcessedResponse.builder()
                 .status("success")
+                .count(list.size())
                 .data(list)
                 .build();
     }

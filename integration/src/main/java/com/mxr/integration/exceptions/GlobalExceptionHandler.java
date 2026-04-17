@@ -2,6 +2,8 @@ package com.mxr.integration.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -32,6 +34,30 @@ public class GlobalExceptionHandler {
         
     }
 
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+        ErrorResponse response = new ErrorResponse(
+            "error",
+            "Invalid request body"
+        );
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+        ErrorResponse response = new ErrorResponse("error", "Invalid request body");
+        return new ResponseEntity<>(response, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
+    @ExceptionHandler(PersonNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handlePersonNotFoundException(PersonNotFoundException ex){
+        ErrorResponse response = new ErrorResponse(
+            "error",
+            ex.getMessage()
+        );
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    }
+    
     @ExceptionHandler(InvalidNameException.class)
     public ResponseEntity<ErrorResponse> handleInvalidNameException(InvalidNameException ex){
         ErrorResponse response = new ErrorResponse(
@@ -63,7 +89,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MissingGenderizeDataException.class)
     public ResponseEntity<ErrorResponse> handleMissingGenderizeDataException(MissingGenderizeDataException ex){
         ErrorResponse response = new ErrorResponse(
-            "error",
+            "502",
             ex.getMessage()
         );
         return new ResponseEntity<>(response, HttpStatus.BAD_GATEWAY);
@@ -81,7 +107,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NullAgeException.class)
     public ResponseEntity<ErrorResponse> handleNullAgeException(NullAgeException ex){
         ErrorResponse response = new ErrorResponse(
-            "error",
+            "502",
             ex.getMessage()
         );
         return new ResponseEntity<>(response, HttpStatus.BAD_GATEWAY);
@@ -90,7 +116,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MissingCountryDataException.class)
     public ResponseEntity<ErrorResponse> handleMissingCountryDataException(MissingCountryDataException ex){
         ErrorResponse response = new ErrorResponse(
-            "error",
+            "502",
             ex.getMessage()
         );
         return new ResponseEntity<>(response, HttpStatus.BAD_GATEWAY);

@@ -14,5 +14,6 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonPropertyOrder({"status", "data"})
 public class MultipleProcessedResponse {
     public String status;
+    public int count;
     public List<Person> data;
 }

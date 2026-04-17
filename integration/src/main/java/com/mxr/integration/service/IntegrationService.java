@@ -1,7 +1,6 @@
 package com.mxr.integration.service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.domain.Specification;
@@ -14,7 +13,6 @@ import com.mxr.integration.Response.PersonExistsResponse;
 import com.mxr.integration.Response.ProcessedResponse;
 import com.mxr.integration.exceptions.MissingGenderizeDataException;
 import com.mxr.integration.exceptions.MissingOrEmptyNameException;
-import com.mxr.integration.exceptions.PersonAlreadyExistsException;
 import com.mxr.integration.exceptions.PersonNotFoundException;
 import com.mxr.integration.exceptions.AgifyExceptions.NullAgeException;
 import com.mxr.integration.exceptions.NationalizeExceptions.MissingCountryDataException;
@@ -39,7 +37,7 @@ public class IntegrationService {
         validateName(name);
         if (repo.existsByName(name)) {
             Person person = repo.findNameIgnoreCase(name).get();
-            return new PersonExistsResponse("error", person, "Profile already exists");
+            return new PersonExistsResponse("success", person, "Profile already exists");
         }
         GenderizeResponse genderizeResponse = getGenderizeResponse(name);
         AgifyResponse agifyResponse = getAgifyResponse(name);
@@ -80,13 +78,13 @@ public class IntegrationService {
         GenderizeResponse genderizeResponse = restTemplate.getForObject(genderizeUrl, GenderizeResponse.class);
 
         if (genderizeResponse == null)
-            throw new MissingGenderizeDataException("No prediction available for the provided name");
+            throw new MissingGenderizeDataException("Genderize returned an invalid response");
 
         String gender = genderizeResponse.getGender();
         int count = genderizeResponse.getSampleSize();
 
         if (gender == null || count == 0)
-            throw new MissingGenderizeDataException("No prediction available for the provided name");
+            throw new MissingGenderizeDataException("Genderize returned an invalid response");
         return genderizeResponse;
     }
 
@@ -94,10 +92,9 @@ public class IntegrationService {
         String agifyUrl = "https://api.agify.io?name=" + name;
         AgifyResponse agifyResponse = restTemplate.getForObject(agifyUrl, AgifyResponse.class);
 
-        int age = agifyResponse.getAge();
-
-        if (age == 0)
-            throw new NullAgeException("Age cannot be null");
+        if (agifyResponse.getAge() == null)
+            throw new NullAgeException("Agify returned an invalid response");
+        
         return agifyResponse;
     }
 
@@ -106,7 +103,7 @@ public class IntegrationService {
         NationalizeResponse nationalizeResponse = restTemplate.getForObject(nationalizeUrl, NationalizeResponse.class);
         List<CountryData> countries = nationalizeResponse.getCountries();
         if (countries.isEmpty())
-            throw new MissingCountryDataException("No country data available for the provided name");
+            throw new MissingCountryDataException("Nationalize returned an invalid response");
 
         return nationalizeResponse;
     }
@@ -114,9 +111,8 @@ public class IntegrationService {
     public Person mapToPerson(GenderizeResponse genderizeResponse, AgifyResponse agifyResponse,
             NationalizeResponse nationalizeResponse) {
         List<CountryData> countries = nationalizeResponse.getCountries();
-        UUID id = UUID.randomUUID();
+       
         return Person.builder()
-                .id(id)
                 .name(genderizeResponse.getName())
                 .gender(genderizeResponse.getGender())
                 .genderProbability(genderizeResponse.getProbability())
@@ -149,7 +145,7 @@ public class IntegrationService {
     private void validateName(String name) {
         if (name.isBlank())
             throw new MissingOrEmptyNameException("Name cannot be empty", name);
-        if (!name.matches("[a-zA-Z ]+"))
+        if (name.matches(".*\\d.*"))
             throw new InvalidNameException("Name must contain only letters");
     }
 

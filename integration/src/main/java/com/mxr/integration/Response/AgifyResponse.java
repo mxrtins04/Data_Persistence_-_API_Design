@@ -8,6 +8,6 @@ public class AgifyResponse {
     int count;
     String name;
     @NotNull
-    int age;
+    Integer age;
     
 }
