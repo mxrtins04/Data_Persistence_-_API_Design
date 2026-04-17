@@ -8,7 +8,6 @@ import lombok.Data;
 @JsonPropertyOrder({ "status", "message", "data" })
 
 public class PersonExistsResponse extends ProcessedResponse {
-    //public String status;
     public String message;
 
     public PersonExistsResponse(String status, Person data, String message) {
