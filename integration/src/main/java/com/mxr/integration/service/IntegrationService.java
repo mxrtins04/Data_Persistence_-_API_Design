@@ -10,6 +10,7 @@ import com.mxr.integration.Response.AgifyResponse;
 import com.mxr.integration.Response.GenderizeResponse;
 import com.mxr.integration.Response.NationalizeResponse;
 import com.mxr.integration.Response.PersonExistsResponse;
+import com.mxr.integration.Response.PersonSummary;
 import com.mxr.integration.Response.ProcessedResponse;
 import com.mxr.integration.exceptions.MissingGenderizeDataException;
 import com.mxr.integration.exceptions.MissingOrEmptyNameException;
@@ -48,13 +49,17 @@ public class IntegrationService {
         return new ProcessedResponse("success", person);
     }
 
-    public List<Person> searchPeople(String gender, String countryId, String ageGroup) {
+    public List<PersonSummary> searchPeople(String gender, String countryId, String ageGroup) {
         Specification<Person> spec = Specification
                 .where(PersonSpecification.hasGender(gender))
                 .and(PersonSpecification.hasCountryId(countryId))
                 .and(PersonSpecification.hasAgeGroup(ageGroup));
 
-        return repo.findAll(spec);
+        return mapToPersonSummary(repo.findAll(spec));
+    }
+
+    private List<PersonSummary> mapToPersonSummary(List<Person> all) {
+        return all.stream().map(person -> new PersonSummary(person.getId(), person.getName(), person.getGender(), person.getAge(), calculateAgeGroup(person.getAge()), person.getCountryId())).toList();
     }
 
     public Person getPersonById(UUID id) {
@@ -143,7 +148,7 @@ public class IntegrationService {
     }
 
     private void validateName(String name) {
-        if (name.isBlank())
+        if (name == null || name.isBlank())
             throw new MissingOrEmptyNameException("Name cannot be empty", name);
         if (name.matches(".*\\d.*"))
             throw new InvalidNameException("Name must contain only letters");

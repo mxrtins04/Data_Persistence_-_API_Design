@@ -4,10 +4,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.mxr.integration.Response.MultipleProcessedResponse;
 import com.mxr.integration.Response.PersonExistsResponse;
+import com.mxr.integration.Response.PersonSummary;
 import com.mxr.integration.Response.ProcessedResponse;
 import com.mxr.integration.model.Person;
 import com.mxr.integration.request.NewEntityRequest;
 import com.mxr.integration.service.IntegrationService;
+
+import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.UUID;
@@ -35,7 +38,7 @@ public class classifyController {
     }
 
     @PostMapping("/api/profiles")
-    public ResponseEntity<ProcessedResponse> savePerson(@RequestBody NewEntityRequest request) {
+    public ResponseEntity<ProcessedResponse> savePerson(@Valid @RequestBody NewEntityRequest request) {
         String name = request.getName();
         ProcessedResponse response = integrationService.savePerson(name);
         if(response instanceof PersonExistsResponse) {
@@ -56,7 +59,7 @@ public class classifyController {
     public MultipleProcessedResponse getUsersByParams(@RequestParam(required = false) String gender,
             @RequestParam(required = false) 
             String countryId, @RequestParam(required = false) String ageGroup) {
-        List<Person> response = integrationService.searchPeople(gender, countryId, ageGroup);
+        List<PersonSummary> response = integrationService.searchPeople(gender, countryId, ageGroup);
         return mapSpecToMultipleProcessedResponse(response);
     }
 
@@ -76,7 +79,7 @@ public class classifyController {
     
 
     
-    private MultipleProcessedResponse mapSpecToMultipleProcessedResponse(List<Person> list) {
+    private MultipleProcessedResponse mapSpecToMultipleProcessedResponse(List<PersonSummary> list) {
 
         return MultipleProcessedResponse.builder()
                 .status("success")

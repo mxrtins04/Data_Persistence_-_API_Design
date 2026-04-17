@@ -1,7 +1,6 @@
 package com.mxr.integration.Response;
 
-import com.mxr.integration.model.Person;
-
+import com.mxr.integration.Response.PersonSummary;
 import lombok.Builder;
 import lombok.Data;
 
@@ -15,5 +14,5 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 public class MultipleProcessedResponse {
     public String status;
     public int count;
-    public List<Person> data;
+    public List<PersonSummary> data;
 }
