@@ -1,4 +1,3 @@
-# Data_Persistence_-_API_Design
 # Data Persistence & API Design
 
 A Java-based project exploring best practices for data persistence and API design patterns.
